@@ -263,6 +263,7 @@ InputGeom::InputGeom(Ogre::TerrainGroup *terrainGroup, std::vector<Ogre::Entity*
     size_t *meshIndexCount = new size_t[totalMeshes];
     Ogre::Vector3 **meshVertices = new Ogre::Vector3*[totalMeshes];
     unsigned long **meshIndices = new unsigned long*[totalMeshes];
+    + unsigned long **meshIndices3 = new unsigned long*[totalMeshes];
 
 
 
@@ -326,29 +327,37 @@ InputGeom::InputGeom(Ogre::TerrainGroup *terrainGroup, std::vector<Ogre::Entity*
 
 
          size_t size = ((MapSize*MapSize)-(MapSize*2)) * 6;
-         meshIndices[trnCount] = new unsigned long[size];
+        - //meshIndices[trnCount] = new unsigned long[size];
+         +meshIndices3[trnCount] = new unsigned long[size];
          // i will point to the 'indices' index to insert at, x points to the vertex # to use
          i = 0;
-         for(int x = 0;;++x)
+         -//for(int x = 0;;++x)
+        + for(int x = 0;x+1+MapSize<((MapSize*MapSize)-1);++x)
          {
              // skip rightmost vertices
              if((x+1)%MapSize == 0)
              {
                  ++x;
              }
+             +meshIndices3[trnCount][i] = x;
+             +meshIndices3[trnCount][i+1] = x + 1;
+            + meshIndices3[trnCount][i+2] = x + MapSize;
 
+            + meshIndices3[trnCount][i+3] = x + 1;
+            + meshIndices3[trnCount][i+4] = x + 1 + MapSize;
+             +meshIndices3[trnCount][i+5] = x + MapSize;
              // make a square of 2 triangles
-             meshIndices[trnCount][i] = x;
-             meshIndices[trnCount][i+1] = x + 1;
-             meshIndices[trnCount][i+2] = x + MapSize;
+           -  //meshIndices[trnCount][i] = x;
+           -  //meshIndices[trnCount][i+1] = x + 1;
+           -  //meshIndices[trnCount][i+2] = x + MapSize;
 
-             meshIndices[trnCount][i+3] = x + 1;
-             meshIndices[trnCount][i+4] = x + 1 + MapSize;
-             meshIndices[trnCount][i+5] = x + MapSize;
+           -  //meshIndices[trnCount][i+3] = x + 1;
+           - // meshIndices[trnCount][i+4] = x + 1 + MapSize;
+           -  //meshIndices[trnCount][i+5] = x + MapSize;
 
-             // if we just did the final square, we're done
-             if(x+1+MapSize == (MapSize*MapSize)-1)
-                 break;
+            - // if we just did the final square, we're done
+           -  //if(x+1+MapSize == (MapSize*MapSize)-1)
+            - // break;
 
              i += 6;
          }
@@ -409,7 +418,8 @@ InputGeom::InputGeom(Ogre::TerrainGroup *terrainGroup, std::vector<Ogre::Entity*
         Ogre::Vector3 vertexPos;
         for (size_t j = 0 ; j < meshVertexCount[i] ; ++j)
         {
-            vertexPos = meshVertices[i][j];
+           - //vertexPos = meshVertices[i][j];
+           +vertexPos = meshVertices3[i][j];
             verts[vertsIndex] = vertexPos.x;
             verts[vertsIndex+1] = vertexPos.y;
             verts[vertsIndex+2] = vertexPos.z;
@@ -465,7 +475,7 @@ InputGeom::InputGeom(Ogre::TerrainGroup *terrainGroup, std::vector<Ogre::Entity*
 
 
 // TODO fix this (memory leak)
-/*
+-///*
     //delete tempory arrays
     //TODO These probably could member varibles, this would increase performance slightly
     for(size_t i = 0; i < totalMeshes; ++i)
@@ -473,10 +483,13 @@ InputGeom::InputGeom(Ogre::TerrainGroup *terrainGroup, std::vector<Ogre::Entity*
         delete [] meshVertices[i];
 
     }
-*/
+-//*/
     // first 4 were created differently, without getMeshInformation();
     // throws an exception if we delete the first 4
     // TODO - FIX THIS MEMORY LEAK - its only small, but its still not good
+    +  for (size_t i = 0 ; i < pagesTotal ; ++i)
+    + delete [] meshIndices3[i];
+     
     for(size_t i  = pagesTotal; i < totalMeshes; ++i)
     {
         delete [] meshIndices[i];
@@ -486,7 +499,7 @@ InputGeom::InputGeom(Ogre::TerrainGroup *terrainGroup, std::vector<Ogre::Entity*
     delete [] meshVertexCount;
     delete [] meshIndices;
     delete [] meshIndexCount;
-
+    +delete [] meshIndices3;
 
 
     //---------------------------------------------------------------------------------------------
